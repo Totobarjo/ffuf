@@ -510,7 +510,8 @@ func (j *Job) handleScraperResult(resp *Response, sres ScraperResult) {
 // handleGreedyRecursionJob adds a recursion job to the queue if the maximum depth has not been reached
 func (j *Job) handleGreedyRecursionJob(resp Response) {
 	// Handle greedy recursion strategy. Match has been determined before calling handleRecursionJob
-	if (j.Config.RecursionDepth == 0 || j.currentDepth < j.Config.RecursionDepth) && !fileExtensions.MatchString(resp.Request.Url) {
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	if ((j.Config.RecursionDepth == 0 || j.currentDepth < j.Config.RecursionDepth) && !fileExtensions.MatchString(resp.Request.Url)) && !resp.StatusCode == 400 {
 		recUrl := resp.Request.Url + "/" + "FUZZ"
 		newJob := QueueJob{Url: recUrl, depth: j.currentDepth + 1, req: RecursionRequest(j.Config, recUrl)}
 		j.queuejobs = append(j.queuejobs, newJob)
