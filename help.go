@@ -103,10 +103,9 @@ func Usage() {
 		Description: "Options for excluding specific status codes or response conditions.",
 		Flags: []UsageFlag{
 			{
-				Flag:        "ecr",
-				Description: "Exclude specific HTTP status codes from recursion (e.g., 403,404,500).",
-				ShortFlag:   "-ecr",
-				LongFlag:    "--exclude-code-recursion",
+				Name:        "ecr",
+				Description: "Exclude specific HTTP status codes from recursion (ex : \"403,404,500\").",
+				Default:     "none",
 			},
 		},
 		Hidden: false,
