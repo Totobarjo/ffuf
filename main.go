@@ -336,11 +336,16 @@ func SetupFilters(parseOpts *ffuf.ConfigOptions, conf *ffuf.Config) error {
 	}
 
 	// Gestion des filtres avec l'option -ecr (Exclude Codes for Recursion)
-	if len(parseOpts.HTTP.ExcludeStatusCodes) > 0 {
-		for _, code := range parseOpts.HTTP.ExcludeStatusCodes {
-			excludeFilter := fmt.Sprintf("%d", code)
-			if err := conf.MatcherManager.AddFilter("status", excludeFilter, true); err != nil {
-				errs.Add(err)
+	// Après le parsing des flags, convertissez excludeCodes en un tableau d'entiers
+	if excludeCodes != "" {
+		codes := strings.Split(excludeCodes, ",")
+		for _, code := range codes {
+			parsedCode, err := strconv.Atoi(strings.TrimSpace(code))
+			if err == nil {
+				opts.ExcludeStatusCodes = append(opts.ExcludeStatusCodes, parsedCode)
+			} else {
+				fmt.Printf("Invalid status code in -ecr: %s\n", code)
+				os.Exit(1)
 			}
 		}
 	}
