@@ -101,13 +101,7 @@ func Usage() {
 	u_exclude := UsageSection{
 		Name:        "EXCLUDE OPTIONS",
 		Description: "Options for excluding specific status codes or response conditions.",
-		Flags: []UsageFlag{
-			{
-				Name:        "ecr",
-				Description: "Exclude specific HTTP status codes from recursion (ex : 403,404,500).",
-				Default:     "none",
-			},
-		},
+		Flags: make([]UsageFlag, 0),
 		Hidden: false,
 		ExpectedFlags: []string{"ecr"},
 	}
