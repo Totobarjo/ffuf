@@ -2,7 +2,8 @@ package ffuf
 
 import (
 	"fmt"
-	"log"MatchString
+	"log"
+	"math/rand"
 	"os"
 	"os/signal"
 	"sync"
