@@ -508,9 +508,8 @@ func (j *Job) handleScraperResult(resp *Response, sres ScraperResult) {
 	}
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 func (j *Job) handleGreedyRecursionJob(resp Response) {
-	// Handle greedy recursion strategy. Match has been determined before calling handleRecursionJob
-
 	// Vérifiez si le code HTTP est exclu
 	isExcluded := func(code int, excludeList []int) bool {
 		for _, excludedCode := range excludeList {
@@ -522,7 +521,7 @@ func (j *Job) handleGreedyRecursionJob(resp Response) {
 	}
 
 	// Si le code est dans la liste des exclus, ne pas ajouter une nouvelle tâche
-	if isExcluded(resp.StatusCode, j.Config.ExcludeRecursionCodes) {
+	if isExcluded(int(resp.StatusCode), j.Config.ExcludeRecursionCodes) {
 		j.Output.Warning(fmt.Sprintf("Excluded status code %d encountered. Ignoring: %s", resp.StatusCode, resp.Request.Url))
 		return
 	}
@@ -537,6 +536,10 @@ func (j *Job) handleGreedyRecursionJob(resp Response) {
 		j.Output.Warning(fmt.Sprintf("Maximum recursion depth reached. Ignoring: %s", resp.Request.Url))
 	}
 }
+
+
+
+
 
 // handleDefaultRecursionJob adds a new recursion job to the job queue if a new directory is found and maximum depth has
 // not been reached
