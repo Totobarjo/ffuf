@@ -510,7 +510,7 @@ func (j *Job) handleScraperResult(resp *Response, sres ScraperResult) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 func (j *Job) handleGreedyRecursionJob(resp Response) {
-	// Fonction locale pour vérifier si un code est exclu
+	// Vérifiez si le code HTTP est dans la liste des exclus
 	isExcluded := func(code int, excludeList []int) bool {
 		for _, excludedCode := range excludeList {
 			if code == excludedCode {
@@ -520,8 +520,7 @@ func (j *Job) handleGreedyRecursionJob(resp Response) {
 		return false
 	}
 
-	// Vérifiez si le code HTTP est dans la liste des exclus définie par -ecr
-	if isExcluded(int(resp.StatusCode), j.Config.ExcludeRecursionCodes) {
+	if isExcluded(int(resp.StatusCode), j.Config.ExcludeStatusCodes) {
 		j.Output.Warning(fmt.Sprintf("Excluded status code %d encountered. Ignoring: %s", resp.StatusCode, resp.Request.Url))
 		return
 	}
@@ -536,6 +535,7 @@ func (j *Job) handleGreedyRecursionJob(resp Response) {
 		j.Output.Warning(fmt.Sprintf("Maximum recursion depth reached. Ignoring: %s", resp.Request.Url))
 	}
 }
+
 
 
 
