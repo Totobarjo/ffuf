@@ -508,11 +508,27 @@ func (j *Job) handleScraperResult(resp *Response, sres ScraperResult) {
 	}
 }
 
-// handleGreedyRecursionJob adds a recursion job to the queue if the maximum depth has not been reached
 func (j *Job) handleGreedyRecursionJob(resp Response) {
 	// Handle greedy recursion strategy. Match has been determined before calling handleRecursionJob
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	if ((j.Config.RecursionDepth == 0 || j.currentDepth < j.Config.RecursionDepth) && !fileExtensions.MatchString(resp.Request.Url)) && resp.StatusCode != 400 {
+
+	// Vérifiez si le code HTTP est exclu
+	isExcluded := func(code int, excludeList []int) bool {
+		for _, excludedCode := range excludeList {
+			if code == excludedCode {
+				return true
+			}
+		}
+		return false
+	}
+
+	// Si le code est dans la liste des exclus, ne pas ajouter une nouvelle tâche
+	if isExcluded(resp.StatusCode, j.Config.ExcludeRecursionCodes) {
+		j.Output.Warning(fmt.Sprintf("Excluded status code %d encountered. Ignoring: %s", resp.StatusCode, resp.Request.Url))
+		return
+	}
+
+	// Continue normalement si le code n'est pas exclu
+	if ((j.Config.RecursionDepth == 0 || j.currentDepth < j.Config.RecursionDepth) && !fileExtensions.MatchString(resp.Request.Url)) {
 		recUrl := resp.Request.Url + "/" + "FUZZ"
 		newJob := QueueJob{Url: recUrl, depth: j.currentDepth + 1, req: RecursionRequest(j.Config, recUrl)}
 		j.queuejobs = append(j.queuejobs, newJob)
