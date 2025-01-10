@@ -62,7 +62,7 @@ func ParseFlags(opts *ffuf.ConfigOptions) *ffuf.ConfigOptions {
 	wordlists = opts.Input.Wordlists
 	encoders = opts.Input.Encoders
 
-	flag.StringVar(&excludeStatusCodes, "ecr", "", "Exclude specific HTTP status codes from recursion (comma-separated, e.g., 403,404)")
+	flag.StringVar(&excludeStatusCodes, "ecr", "", "Exclude specific HTTP status codes from recursion (comma-separated, ex : 403,404)")
 	flag.BoolVar(&ignored, "compressed", true, "Dummy flag for copy as curl functionality (ignored)")
 	flag.BoolVar(&ignored, "i", true, "Dummy flag for copy as curl functionality (ignored)")
 	flag.BoolVar(&ignored, "k", false, "Dummy flag for backwards compatibility")
