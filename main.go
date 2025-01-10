@@ -53,6 +53,7 @@ func ParseFlags(opts *ffuf.ConfigOptions) *ffuf.ConfigOptions {
 
 	var cookies, autocalibrationstrings, autocalibrationstrategies, headers, inputcommands multiStringFlag
 	var wordlists, encoders wordlistFlag
+	var excludeStatusCodes string
 
 	cookies = opts.HTTP.Cookies
 	autocalibrationstrings = opts.General.AutoCalibrationStrings
@@ -61,6 +62,7 @@ func ParseFlags(opts *ffuf.ConfigOptions) *ffuf.ConfigOptions {
 	wordlists = opts.Input.Wordlists
 	encoders = opts.Input.Encoders
 
+	flag.StringVar(&excludeStatusCodes, "ecr", "", "Exclude specific HTTP status codes from recursion (comma-separated, e.g., 403,404)")
 	flag.BoolVar(&ignored, "compressed", true, "Dummy flag for copy as curl functionality (ignored)")
 	flag.BoolVar(&ignored, "i", true, "Dummy flag for copy as curl functionality (ignored)")
 	flag.BoolVar(&ignored, "k", false, "Dummy flag for backwards compatibility")
@@ -333,6 +335,16 @@ func SetupFilters(parseOpts *ffuf.ConfigOptions, conf *ffuf.Config) error {
 		}
 	}
 
+	// Gestion des filtres avec l'option -ecr (Exclude Codes for Recursion)
+	if len(parseOpts.HTTP.ExcludeStatusCodes) > 0 {
+		for _, code := range parseOpts.HTTP.ExcludeStatusCodes {
+			excludeFilter := fmt.Sprintf("%d", code)
+			if err := conf.MatcherManager.AddFilter("status", excludeFilter, true); err != nil {
+				errs.Add(err)
+			}
+		}
+	}
+	
 	if parseOpts.Filter.Status != "" {
 		if err := conf.MatcherManager.AddFilter("status", parseOpts.Filter.Status, false); err != nil {
 			errs.Add(err)
