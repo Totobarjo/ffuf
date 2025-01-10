@@ -235,6 +235,9 @@ OUTPUT OPTIONS:
   -of                 Output file format. Available formats: json, ejson, html, md, csv, ecsv (or, 'all' for all formats) (default: json)
   -or                 Don't create the output file if we don't have results (default: false)
 
+EXCLUDE OPTIONS:
+  - ecr               (Exclude Code in Response) Options for excluding specific status codes or response conditions in recursive mode
+
 EXAMPLE USAGE:
   Fuzz file paths from wordlist.txt, match all responses but filter out those with content-size 42.
   Colored, verbose output.
