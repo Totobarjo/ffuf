@@ -26,24 +26,25 @@ type ConfigOptions struct {
 }
 
 type HTTPOptions struct {
-	Cookies           []string `json:"-"` // this is appended in headers
-	Data              string   `json:"data"`
-	FollowRedirects   bool     `json:"follow_redirects"`
-	Headers           []string `json:"headers"`
-	IgnoreBody        bool     `json:"ignore_body"`
-	Method            string   `json:"method"`
-	ProxyURL          string   `json:"proxy_url"`
-	Raw               bool     `json:"raw"`
-	Recursion         bool     `json:"recursion"`
-	RecursionDepth    int      `json:"recursion_depth"`
-	RecursionStrategy string   `json:"recursion_strategy"`
-	ReplayProxyURL    string   `json:"replay_proxy_url"`
-	SNI               string   `json:"sni"`
-	Timeout           int      `json:"timeout"`
-	URL               string   `json:"url"`
-	Http2             bool     `json:"http2"`
-	ClientCert        string   `json:"client-cert"`
-	ClientKey         string   `json:"client-key"`
+	Cookies             []string `json:"-"` // this is appended in headers
+	Data                string   `json:"data"`
+	FollowRedirects     bool     `json:"follow_redirects"`
+	Headers             []string `json:"headers"`
+	IgnoreBody          bool     `json:"ignore_body"`
+	Method              string   `json:"method"`
+	ProxyURL            string   `json:"proxy_url"`
+	Raw                 bool     `json:"raw"`
+	Recursion           bool     `json:"recursion"`
+	RecursionDepth      int      `json:"recursion_depth"`
+	RecursionStrategy   string   `json:"recursion_strategy"`
+	ReplayProxyURL      string   `json:"replay_proxy_url"`
+	SNI                 string   `json:"sni"`
+	Timeout             int      `json:"timeout"`
+	URL                 string   `json:"url"`
+	Http2               bool     `json:"http2"`
+	ClientCert          string   `json:"client-cert"`
+	ClientKey           string   `json:"client-key"`
+	ExcludeStatusCodes  []int    `json:"exclude_status_codes"`
 }
 
 type GeneralOptions struct {
