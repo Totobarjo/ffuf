@@ -340,24 +340,15 @@ func SetupFilters(parseOpts *ffuf.ConfigOptions, conf *ffuf.Config) error {
 	}
 
 	// Gestion des filtres avec l'option -ecr (Exclude Codes for Recursion)
-	if excludeStatusCodes != "" {
-	    codes := strings.Split(excludeStatusCodes, ",")
-	    for _, code := range codes {
-	        parsedCode, err := strconv.Atoi(strings.TrimSpace(code))
-	        if err != nil {
-	            fmt.Printf("Error: Invalid status code in -ecr flag: '%s'\n", code)
-	            os.Exit(1)
-	        }
-	        // Ajouter à la config
-	        conf.ExcludeStatusCodes = append(conf.ExcludeStatusCodes, parsedCode)
-	        
-	        // Ajouter aux filtres
-	        excludeFilter := fmt.Sprintf("%d", parsedCode)
-	        if err := conf.MatcherManager.AddFilter("status", excludeFilter, true); err != nil {
-	            errs.Add(err)
+	    if len(parseOpts.HTTP.ExcludeStatusCodes) > 0 {
+	        for _, code := range parseOpts.HTTP.ExcludeStatusCodes {
+	            excludeFilter := fmt.Sprintf("%d", code)
+	            if err := conf.MatcherManager.AddFilter("status", excludeFilter, true); err != nil {
+	                errs.Add(err)
+	            }
+	            conf.ExcludeStatusCodes = append(conf.ExcludeStatusCodes, code)
 	        }
 	    }
-	}
 	
 	if parseOpts.Filter.Status != "" {
 		if err := conf.MatcherManager.AddFilter("status", parseOpts.Filter.Status, false); err != nil {
