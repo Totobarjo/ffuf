@@ -16,6 +16,8 @@ import (
 	"github.com/pelletier/go-toml"
 )
 
+// ========== Début des struct ==========
+
 type ConfigOptions struct {
 	Filter  FilterOptions  `json:"filters"`
 	General GeneralOptions `json:"general"`
@@ -115,7 +117,8 @@ type MatcherOptions struct {
 	Words  string `json:"words"`
 }
 
-// Options returns a newly created ConfigOptions struct with default values
+// ========== ConfigOptions par défaut ==========
+
 func NewConfigOptions() *ConfigOptions {
 	c := &ConfigOptions{}
 	c.Filter.Mode = "or"
@@ -182,18 +185,38 @@ func NewConfigOptions() *ConfigOptions {
 	return c
 }
 
-// ConfigFromOptions parses the values in ConfigOptions struct, ensures that the values are sane,
-// and creates a Config struct out of them.
+// ========== La struct Config & Multierror (déjà présente dans un autre fichier config.go) ==========
+// On suppose que tu as déjà:
+//   type Config struct { ... ExcludeResponseCodes []int ... }
+
+//
+// ========== NOUVELLE FONCTION NewConfig ==========
+//
+
+func NewConfig(opts *ConfigOptions, ctx context.Context, cancel context.CancelFunc) (*Config, error) {
+	var conf Config
+	// Copie d'au moins ce qui t'intéresse depuis opts
+	conf.ExcludeResponseCodes = opts.HTTP.ExcludeResponseCodes
+	conf.Context = ctx
+	conf.Cancel = cancel
+	// ... tu peux en rajouter si besoin ...
+	return &conf, nil
+}
+
+// ========== FONCTION PRINCIPALE : ConfigFromOptions ==========
+// Elle appelle NewConfig, puis complète 'conf' avec le reste.
+
 func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel context.CancelFunc) (*Config, error) {
 	//TODO: refactor in a proper flag library that can handle things like required flags
 	errs := NewMultierror()
+
+	// -- On appelle la nouvelle fonction NewConfig :
 	conf, err := NewConfig(parseOpts, ctx, cancel)
 	if err != nil {
-	    // gérer l’erreur au besoin
-	    return nil, err
+		// gérer l’erreur au besoin
+		return nil, err
 	}
 
-	var err error
 	var err2 error
 	if len(parseOpts.HTTP.URL) == 0 && parseOpts.Input.Request == "" {
 		errs.Add(fmt.Errorf("-u flag or -request flag is required"))
@@ -261,7 +284,7 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 				if FileExists(filepart) {
 					wl = []string{filepart, v[strings.LastIndex(v, ":")+1:]}
 				} else {
-					// The file was not found. Use full wordlist parameter value for more concise error message down the line
+					// The file was not found. Use full wordlist parameter value for more concise error message
 					wl = []string{v}
 				}
 			}
@@ -270,6 +293,7 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 		}
 		// Try to use absolute paths for wordlists
 		fullpath := ""
+		var err error
 		if wl[0] != "-" {
 			fullpath, err = filepath.Abs(wl[0])
 		} else {
@@ -353,7 +377,7 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 
 	// Prepare the request using body
 	if parseOpts.Input.Request != "" {
-		err := parseRawRequest(parseOpts, &conf)
+		err := parseRawRequest(parseOpts, conf)
 		if err != nil {
 			errmsg := fmt.Sprintf("Could not parse raw request: %s", err)
 			errs.Add(fmt.Errorf(errmsg))
@@ -382,20 +406,15 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 	for _, v := range parseOpts.HTTP.Headers {
 		hs := strings.SplitN(v, ":", 2)
 		if len(hs) == 2 {
-			// trim and make canonical
-			// except if used in custom defined header
 			var CanonicalNeeded = true
 			for _, a := range conf.CommandKeywords {
 				if strings.Contains(hs[0], a) {
 					CanonicalNeeded = false
 				}
 			}
-			// check if part of InputProviders
-			if CanonicalNeeded {
-				for _, b := range conf.InputProviders {
-					if strings.Contains(hs[0], b.Keyword) {
-						CanonicalNeeded = false
-					}
+			for _, b := range conf.InputProviders {
+				if strings.Contains(hs[0], b.Keyword) {
+					CanonicalNeeded = false
 				}
 			}
 			if CanonicalNeeded {
@@ -452,7 +471,6 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 
 	//Check the output file format option
 	if parseOpts.Output.OutputFile != "" {
-		//No need to check / error out if output file isn't defined
 		outputFormats := []string{"all", "json", "ejson", "html", "md", "csv", "ecsv"}
 		found := false
 		for _, f := range outputFormats {
@@ -491,22 +509,17 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 
 	if conf.Method == "" {
 		if parseOpts.HTTP.Method == "" {
-			// Only set if defined on command line, because we might be reparsing the CLI after
-			// populating it through raw request in the first iteration
 			conf.Method = "GET"
 		} else {
 			conf.Method = parseOpts.HTTP.Method
 		}
 	} else {
 		if parseOpts.HTTP.Method != "" {
-			// Method overridden in CLI
 			conf.Method = parseOpts.HTTP.Method
 		}
 	}
 
 	if parseOpts.HTTP.Data != "" {
-		// Only set if defined on command line, because we might be reparsing the CLI after
-		// populating it through raw request in the first iteration
 		conf.Data = parseOpts.HTTP.Data
 	}
 
@@ -568,16 +581,12 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 	conf.MatcherMode = parseOpts.Matcher.Mode
 
 	if conf.AutoCalibrationPerHost {
-		// AutoCalibrationPerHost implies AutoCalibration
 		conf.AutoCalibration = true
 	}
 
-	// Handle copy as curl situation where POST method is implied by --data flag. If method is set to anything but GET, NOOP
 	if len(conf.Data) > 0 &&
 		conf.Method == "GET" &&
-		//don't modify the method automatically if a request file is being used as input
 		len(parseOpts.Input.Request) == 0 {
-
 		conf.Method = "POST"
 	}
 
@@ -603,14 +612,12 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 	}
 	conf.InputProviders = newInputProviders
 
-	// If sniper mode, ensure there is no FUZZ keyword
 	if conf.InputMode == "sniper" {
 		if keywordPresent("FUZZ", &conf) {
 			errs.Add(fmt.Errorf("FUZZ keyword defined, but we are using sniper mode."))
 		}
 	}
 
-	// Do checks for recursion mode
 	if parseOpts.HTTP.Recursion {
 		if !strings.HasSuffix(conf.Url, "FUZZ") {
 			errmsg := "When using -recursion the URL (-u) must end with FUZZ keyword."
@@ -618,12 +625,15 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 		}
 	}
 
-	// Make verbose mutually exclusive with json
 	if parseOpts.General.Verbose && parseOpts.General.Json {
 		errs.Add(fmt.Errorf("Cannot have -json and -v"))
 	}
-	return &conf, errs.ErrorOrNil()
+
+	// *** ICI, on renvoie `conf` (pointeur) et l'éventuel multi-erreur ***
+	return conf, errs.ErrorOrNil()
 }
+
+// ========== parseRawRequest (inchangé) ==========
 
 func parseRawRequest(parseOpts *ConfigOptions, conf *Config) error {
 	conf.RequestFile = parseOpts.Input.Request
@@ -644,7 +654,6 @@ func parseRawRequest(parseOpts *ConfigOptions, conf *Config) error {
 	if len(parts) < 3 {
 		return fmt.Errorf("malformed request supplied")
 	}
-	// Set the request Method
 	conf.Method = parts[0]
 
 	for {
@@ -667,8 +676,6 @@ func parseRawRequest(parseOpts *ConfigOptions, conf *Config) error {
 		conf.Headers[strings.TrimSpace(p[0])] = strings.TrimSpace(p[1])
 	}
 
-	// Handle case with the full http url in path. In that case,
-	// ignore any host header that we encounter and use the path as request URL
 	if strings.HasPrefix(parts[1], "http") {
 		parsed, err := url.Parse(parts[1])
 		if err != nil {
@@ -677,19 +684,15 @@ func parseRawRequest(parseOpts *ConfigOptions, conf *Config) error {
 		conf.Url = parts[1]
 		conf.Headers["Host"] = parsed.Host
 	} else {
-		// Build the request URL from the request
 		conf.Url = parseOpts.Input.RequestProto + "://" + conf.Headers["Host"] + parts[1]
 	}
 
-	// Set the request body
 	b, err := io.ReadAll(r)
 	if err != nil {
 		return fmt.Errorf("could not read request body: %s", err)
 	}
 	conf.Data = string(b)
 
-	// Remove newline (typically added by the editor) at the end of the file
-	//nolint:gosimple // we specifically want to remove just a single newline, not all of them
 	if strings.HasSuffix(conf.Data, "\r\n") {
 		conf.Data = conf.Data[:len(conf.Data)-2]
 	} else if strings.HasSuffix(conf.Data, "\n") {
@@ -698,67 +701,7 @@ func parseRawRequest(parseOpts *ConfigOptions, conf *Config) error {
 	return nil
 }
 
-func keywordPresent(keyword string, conf *Config) bool {
-	//Search for keyword from HTTP method, URL and POST data too
-	if strings.Contains(conf.Method, keyword) {
-		return true
-	}
-	if strings.Contains(conf.Url, keyword) {
-		return true
-	}
-	if strings.Contains(conf.Data, keyword) {
-		return true
-	}
-	for k, v := range conf.Headers {
-		if strings.Contains(k, keyword) {
-			return true
-		}
-		if strings.Contains(v, keyword) {
-			return true
-		}
-	}
-	return false
-}
-
-func templatePresent(template string, conf *Config) bool {
-	// Search for input location identifiers, these must exist in pairs
-	sane := false
-
-	if c := strings.Count(conf.Method, template); c > 0 {
-		if c%2 != 0 {
-			return false
-		}
-		sane = true
-	}
-	if c := strings.Count(conf.Url, template); c > 0 {
-		if c%2 != 0 {
-			return false
-		}
-		sane = true
-	}
-	if c := strings.Count(conf.Data, template); c > 0 {
-		if c%2 != 0 {
-			return false
-		}
-		sane = true
-	}
-	for k, v := range conf.Headers {
-		if c := strings.Count(k, template); c > 0 {
-			if c%2 != 0 {
-				return false
-			}
-			sane = true
-		}
-		if c := strings.Count(v, template); c > 0 {
-			if c%2 != 0 {
-				return false
-			}
-			sane = true
-		}
-	}
-
-	return sane
-}
+// ========== Fonctions utilitaires supplémentaires ==========
 
 func ReadConfig(configFile string) (*ConfigOptions, error) {
 	conf := NewConfigOptions()
@@ -770,7 +713,6 @@ func ReadConfig(configFile string) (*ConfigOptions, error) {
 }
 
 func ReadDefaultConfig() (*ConfigOptions, error) {
-	// Try to create configuration directory, ignore the potential error
 	_ = CheckOrCreateConfigDir()
 	conffile := filepath.Join(CONFIGDIR, "ffufrc")
 	if !FileExists(conffile) {
