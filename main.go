@@ -173,6 +173,8 @@ func main() {
 	opts, optserr = ffuf.ReadDefaultConfig()
 
 	opts = ParseFlags(opts)
+	parseOpts, excludeStatusCodes := ParseFlags(opts)
+   	err := SetupFilters(parseOpts, conf, excludeStatusCodes)
 
 	// Handle searchhash functionality and exit
 	if opts.General.Searchhash != "" {
@@ -302,7 +304,7 @@ func prepareJob(conf *ffuf.Config) (*ffuf.Job, error) {
 	return job, errs.ErrorOrNil()
 }
 
-func SetupFilters(parseOpts *ffuf.ConfigOptions, conf *ffuf.Config) error {
+func SetupFilters(parseOpts *ffuf.ConfigOptions, conf *ffuf.Config, excludeStatusCodes string) error {
 	errs := ffuf.NewMultierror()
 	conf.MatcherManager = filter.NewMatcherManager()
 	// If any other matcher is set, ignore -mc default value
