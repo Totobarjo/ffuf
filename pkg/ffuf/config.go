@@ -67,6 +67,7 @@ type Config struct {
 	Http2                     bool                  `json:"http2"`
 	ClientCert                string                `json:"client-cert"`
 	ClientKey                 string                `json:"client-key"`
+	ExcludeResponseCodes      []int                 `json:"exclude_response_codes"`
 }
 
 type InputProviderConfig struct {
