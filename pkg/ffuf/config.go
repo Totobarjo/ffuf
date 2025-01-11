@@ -68,7 +68,6 @@ type Config struct {
 	ClientCert                string                `json:"client-cert"`
 	ClientKey                 string                `json:"client-key"`
 	ExcludeResponseCodes      []int                 `json:"exclude_response_codes"`
-	RecursionDepth            int
 }
 
 type InputProviderConfig struct {
