@@ -9,7 +9,6 @@ import (
 	"os"
 	"strings"
 	"time"
-	"strconv"
 
 	"github.com/ffuf/ffuf/v2/pkg/ffuf"
 	"github.com/ffuf/ffuf/v2/pkg/filter"
