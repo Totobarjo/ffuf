@@ -16,30 +16,180 @@ import (
 	"github.com/pelletier/go-toml"
 )
 
-// ConfigOptions est déjà défini en détail dans ton code (HTTPOptions, GeneralOptions, etc.).
-// Ici, on suppose que c'est importé du même package ou que c'est juste au-dessus.
-//
-// Idem pour:
-//   func ReadConfig(...)
-//   func ReadDefaultConfig(...)
-//   etc.
-//
-// Le plus important: on ne re-déclare pas NewConfig ni templatePresent, keywordPresent ici.
+type ConfigOptions struct {
+	Filter  FilterOptions  `json:"filters"`
+	General GeneralOptions `json:"general"`
+	HTTP    HTTPOptions    `json:"http"`
+	Input   InputOptions   `json:"input"`
+	Matcher MatcherOptions `json:"matchers"`
+	Output  OutputOptions  `json:"output"`
+}
 
+type HTTPOptions struct {
+	Cookies             []string `json:"-"` // this is appended in headers
+	Data                string   `json:"data"`
+	FollowRedirects     bool     `json:"follow_redirects"`
+	Headers             []string `json:"headers"`
+	IgnoreBody          bool     `json:"ignore_body"`
+	Method              string   `json:"method"`
+	ProxyURL            string   `json:"proxy_url"`
+	Raw                 bool     `json:"raw"`
+	Recursion           bool     `json:"recursion"`
+	RecursionDepth      int      `json:"recursion_depth"`
+	RecursionStrategy   string   `json:"recursion_strategy"`
+	ReplayProxyURL      string   `json:"replay_proxy_url"`
+	SNI                 string   `json:"sni"`
+	Timeout             int      `json:"timeout"`
+	URL                 string   `json:"url"`
+	Http2               bool     `json:"http2"`
+	ClientCert          string   `json:"client-cert"`
+	ClientKey           string   `json:"client-key"`
+	ExcludeResponseCodes []int    `json:"exclude_status_codes"`
+}
 
-// ConfigFromOptions : parse la config, appelle NewConfig pour construire *Config, 
-// puis fait les vérifications / compléments nécessaires avant de renvoyer (*Config, error).
+type GeneralOptions struct {
+	AutoCalibration           bool     `json:"autocalibration"`
+	AutoCalibrationKeyword    string   `json:"autocalibration_keyword"`
+	AutoCalibrationPerHost    bool     `json:"autocalibration_per_host"`
+	AutoCalibrationStrategies []string `json:"autocalibration_strategies"`
+	AutoCalibrationStrings    []string `json:"autocalibration_strings"`
+	Colors                    bool     `json:"colors"`
+	ConfigFile                string   `toml:"-" json:"config_file"`
+	Delay                     string   `json:"delay"`
+	Json                      bool     `json:"json"`
+	MaxTime                   int      `json:"maxtime"`
+	MaxTimeJob                int      `json:"maxtime_job"`
+	Noninteractive            bool     `json:"noninteractive"`
+	Quiet                     bool     `json:"quiet"`
+	Rate                      int      `json:"rate"`
+	ScraperFile               string   `json:"scraperfile"`
+	Scrapers                  string   `json:"scrapers"`
+	Searchhash                string   `json:"-"`
+	ShowVersion               bool     `toml:"-" json:"-"`
+	StopOn403                 bool     `json:"stop_on_403"`
+	StopOnAll                 bool     `json:"stop_on_all"`
+	StopOnErrors              bool     `json:"stop_on_errors"`
+	Threads                   int      `json:"threads"`
+	Verbose                   bool     `json:"verbose"`
+}
+
+type InputOptions struct {
+	DirSearchCompat        bool     `json:"dirsearch_compat"`
+	Encoders               []string `json:"encoders"`
+	Extensions             string   `json:"extensions"`
+	IgnoreWordlistComments bool     `json:"ignore_wordlist_comments"`
+	InputMode              string   `json:"input_mode"`
+	InputNum               int      `json:"input_num"`
+	InputShell             string   `json:"input_shell"`
+	Inputcommands          []string `json:"input_commands"`
+	Request                string   `json:"request_file"`
+	RequestProto           string   `json:"request_proto"`
+	Wordlists              []string `json:"wordlists"`
+}
+
+type OutputOptions struct {
+	DebugLog            string `json:"debug_log"`
+	OutputDirectory     string `json:"output_directory"`
+	OutputFile          string `json:"output_file"`
+	OutputFormat        string `json:"output_format"`
+	OutputSkipEmptyFile bool   `json:"output_skip_empty"`
+}
+
+type FilterOptions struct {
+	Mode   string `json:"mode"`
+	Lines  string `json:"lines"`
+	Regexp string `json:"regexp"`
+	Size   string `json:"size"`
+	Status string `json:"status"`
+	Time   string `json:"time"`
+	Words  string `json:"words"`
+}
+
+type MatcherOptions struct {
+	Mode   string `json:"mode"`
+	Lines  string `json:"lines"`
+	Regexp string `json:"regexp"`
+	Size   string `json:"size"`
+	Status string `json:"status"`
+	Time   string `json:"time"`
+	Words  string `json:"words"`
+}
+
+// NewConfigOptions returns a newly created ConfigOptions struct with default values
+func NewConfigOptions() *ConfigOptions {
+	c := &ConfigOptions{}
+	c.Filter.Mode = "or"
+	c.Filter.Lines = ""
+	c.Filter.Regexp = ""
+	c.Filter.Size = ""
+	c.Filter.Status = ""
+	c.Filter.Time = ""
+	c.Filter.Words = ""
+	c.General.AutoCalibration = false
+	c.General.AutoCalibrationKeyword = "FUZZ"
+	c.General.AutoCalibrationStrategies = []string{"basic"}
+	c.General.Colors = false
+	c.General.Delay = ""
+	c.General.Json = false
+	c.General.MaxTime = 0
+	c.General.MaxTimeJob = 0
+	c.General.Noninteractive = false
+	c.General.Quiet = false
+	c.General.Rate = 0
+	c.General.Searchhash = ""
+	c.General.ScraperFile = ""
+	c.General.Scrapers = "all"
+	c.General.ShowVersion = false
+	c.General.StopOn403 = false
+	c.General.StopOnAll = false
+	c.General.StopOnErrors = false
+	c.General.Threads = 40
+	c.General.Verbose = false
+	c.HTTP.Data = ""
+	c.HTTP.FollowRedirects = false
+	c.HTTP.IgnoreBody = false
+	c.HTTP.Method = ""
+	c.HTTP.ProxyURL = ""
+	c.HTTP.Raw = false
+	c.HTTP.Recursion = false
+	c.HTTP.RecursionDepth = 0
+	c.HTTP.RecursionStrategy = "default"
+	c.HTTP.ReplayProxyURL = ""
+	c.HTTP.Timeout = 10
+	c.HTTP.SNI = ""
+	c.HTTP.URL = ""
+	c.HTTP.Http2 = false
+	c.Input.DirSearchCompat = false
+	c.Input.Encoders = []string{}
+	c.Input.Extensions = ""
+	c.Input.IgnoreWordlistComments = false
+	c.Input.InputMode = "clusterbomb"
+	c.Input.InputNum = 100
+	c.Input.Request = ""
+	c.Input.RequestProto = "https"
+	c.Matcher.Mode = "or"
+	c.Matcher.Lines = ""
+	c.Matcher.Regexp = ""
+	c.Matcher.Size = ""
+	c.Matcher.Status = "200-299,301,302,307,401,403,405,500"
+	c.Matcher.Time = ""
+	c.Matcher.Words = ""
+	c.Output.DebugLog = ""
+	c.Output.OutputDirectory = ""
+	c.Output.OutputFile = ""
+	c.Output.OutputFormat = "json"
+	c.Output.OutputSkipEmptyFile = false
+	return c
+}
+
+// ConfigFromOptions parses the values in ConfigOptions struct, ensures that the values are sane,
+// and creates a Config struct out of them.
 func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel context.CancelFunc) (*Config, error) {
-	// On suppose que tu as un type Multierror et une fonction NewMultierror() quelque part dans pkg/ffuf.
+	//TODO: refactor in a proper flag library that can handle things like required flags
 	errs := NewMultierror()
+	conf := NewConfig(ctx, cancel)
 
-	// On appelle NewConfig (déjà définie dans config.go)
-	conf, err := NewConfig(parseOpts, ctx, cancel)
-	if err != nil {
-		// gérer l’erreur au besoin
-		return nil, err
-	}
-
+	var err error
 	var err2 error
 	if len(parseOpts.HTTP.URL) == 0 && parseOpts.Input.Request == "" {
 		errs.Add(fmt.Errorf("-u flag or -request flag is required"))
@@ -56,7 +206,7 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 		parseOpts.HTTP.Headers = append(parseOpts.HTTP.Headers, "Cookie: "+strings.Join(parseOpts.HTTP.Cookies, "; "))
 	}
 
-	// Prepare inputproviders
+	//Prepare inputproviders
 	conf.InputMode = parseOpts.Input.InputMode
 
 	validmode := false
@@ -82,8 +232,6 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 			errs.Add(fmt.Errorf("sniper mode only supports one input command"))
 		}
 	}
-
-	// On gère les encoders
 	tmpEncoders := make(map[string]string)
 	for _, e := range parseOpts.Input.Encoders {
 		if strings.Contains(e, ":") {
@@ -92,15 +240,13 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 			tmpEncoders[key] = val
 		}
 	}
-
-	// On gère les wordlists
 	tmpWordlists := make([]string, 0)
 	for _, v := range parseOpts.Input.Wordlists {
 		var wl []string
 		if runtime.GOOS == "windows" {
-			// Gérer le cas de chemins Windows
+			// Try to ensure that Windows file paths like C:\path\to\wordlist.txt:KEYWORD are treated properly
 			if FileExists(v) {
-				// Le wordlist a été fourni sans mot-clé
+				// The wordlist was supplied without a keyword parameter
 				wl = []string{v}
 			} else {
 				filepart := v
@@ -111,15 +257,15 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 				if FileExists(filepart) {
 					wl = []string{filepart, v[strings.LastIndex(v, ":")+1:]}
 				} else {
+					// The file was not found. Use full wordlist parameter value for more concise error message down the line
 					wl = []string{v}
 				}
 			}
 		} else {
 			wl = strings.SplitN(v, ":", 2)
 		}
-		// Essayer d'avoir un chemin absolu
+		// Try to use absolute paths for wordlists
 		fullpath := ""
-		var err error
 		if wl[0] != "-" {
 			fullpath, err = filepath.Abs(wl[0])
 		} else {
@@ -152,6 +298,7 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 				Keyword:  "FUZZ",
 				Template: template,
 			}
+			// Add encoders if set
 			enc, ok := tmpEncoders["FUZZ"]
 			if ok {
 				newp.Encoders = enc
@@ -162,7 +309,6 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 	}
 	conf.Wordlists = tmpWordlists
 
-	// On gère les inputcommands
 	for _, v := range parseOpts.Input.Inputcommands {
 		ic := strings.SplitN(v, ":", 2)
 		if len(ic) == 2 {
@@ -196,28 +342,31 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 			conf.CommandKeywords = append(conf.CommandKeywords, "FUZZ")
 		}
 	}
+
 	if len(conf.InputProviders) == 0 {
 		errs.Add(fmt.Errorf("Either -w or --input-cmd flag is required"))
 	}
 
-	// Préparation du request via body brut
+	// Prepare the request using body
 	if parseOpts.Input.Request != "" {
-		err := parseRawRequest(parseOpts, conf)
+		err := parseRawRequest(parseOpts, &conf)
 		if err != nil {
 			errmsg := fmt.Sprintf("Could not parse raw request: %s", err)
 			errs.Add(fmt.Errorf(errmsg))
 		}
 	}
 
-	// Préparation de l'URL
+	//Prepare URL
 	if parseOpts.HTTP.URL != "" {
 		conf.Url = parseOpts.HTTP.URL
 	}
-	// SNI
+
+	// Prepare SNI
 	if parseOpts.HTTP.SNI != "" {
 		conf.SNI = parseOpts.HTTP.SNI
 	}
-	// Cert
+
+	// prepare cert
 	if parseOpts.HTTP.ClientCert != "" {
 		conf.ClientCert = parseOpts.HTTP.ClientCert
 	}
@@ -225,20 +374,24 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 		conf.ClientKey = parseOpts.HTTP.ClientKey
 	}
 
-	// Préparation des headers (Make canonical)
+	//Prepare headers and make canonical
 	for _, v := range parseOpts.HTTP.Headers {
 		hs := strings.SplitN(v, ":", 2)
 		if len(hs) == 2 {
+			// trim and make canonical
+			// except if used in custom defined header
 			var CanonicalNeeded = true
-			// Vérifier s'il y a des keywords dans la clé
 			for _, a := range conf.CommandKeywords {
 				if strings.Contains(hs[0], a) {
 					CanonicalNeeded = false
 				}
 			}
-			for _, b := range conf.InputProviders {
-				if strings.Contains(hs[0], b.Keyword) {
-					CanonicalNeeded = false
+			// check if part of InputProviders
+			if CanonicalNeeded {
+				for _, b := range conf.InputProviders {
+					if strings.Contains(hs[0], b.Keyword) {
+						CanonicalNeeded = false
+					}
 				}
 			}
 			if CanonicalNeeded {
@@ -252,7 +405,7 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 		}
 	}
 
-	// Préparation du delay
+	//Prepare delay
 	d := strings.Split(parseOpts.General.Delay, "-")
 	if len(d) > 2 {
 		errs.Add(fmt.Errorf("Delay needs to be either a single float: \"0.1\" or a range of floats, delimited by dash: \"0.1-0.8\""))
@@ -273,7 +426,7 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 		}
 	}
 
-	// Proxy
+	// Verify proxy url format
 	if len(parseOpts.HTTP.ProxyURL) > 0 {
 		u, err := url.Parse(parseOpts.HTTP.ProxyURL)
 		if err != nil || u.Opaque != "" || (u.Scheme != "http" && u.Scheme != "https" && u.Scheme != "socks5") {
@@ -283,7 +436,7 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 		}
 	}
 
-	// Replay proxy
+	// Verify replayproxy url format
 	if len(parseOpts.HTTP.ReplayProxyURL) > 0 {
 		u, err := url.Parse(parseOpts.HTTP.ReplayProxyURL)
 		if err != nil || u.Opaque != "" || (u.Scheme != "http" && u.Scheme != "https" && u.Scheme != "socks5" && u.Scheme != "socks5h") {
@@ -293,8 +446,9 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 		}
 	}
 
-	// Sortie
+	//Check the output file format option
 	if parseOpts.Output.OutputFile != "" {
+		//No need to check / error out if output file isn't defined
 		outputFormats := []string{"all", "json", "ejson", "html", "md", "csv", "ecsv"}
 		found := false
 		for _, f := range outputFormats {
@@ -308,16 +462,19 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 		}
 	}
 
-	// Auto-calibration strings / strategies
+	// Auto-calibration strings
 	if len(parseOpts.General.AutoCalibrationStrings) > 0 {
 		conf.AutoCalibrationStrings = parseOpts.General.AutoCalibrationStrings
 	}
+	// Auto-calibration strategies
 	if len(parseOpts.General.AutoCalibrationStrategies) > 0 {
 		conf.AutoCalibrationStrategies = parseOpts.General.AutoCalibrationStrategies
 	}
+	// Using -acc implies -ac
 	if len(parseOpts.General.AutoCalibrationStrings) > 0 {
 		conf.AutoCalibration = true
 	}
+	// Using -acs implies -ac
 	if len(parseOpts.General.AutoCalibrationStrategies) > 0 {
 		conf.AutoCalibration = true
 	}
@@ -330,25 +487,31 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 
 	if conf.Method == "" {
 		if parseOpts.HTTP.Method == "" {
+			// Only set if defined on command line, because we might be reparsing the CLI after
+			// populating it through raw request in the first iteration
 			conf.Method = "GET"
 		} else {
 			conf.Method = parseOpts.HTTP.Method
 		}
 	} else {
 		if parseOpts.HTTP.Method != "" {
+			// Method overridden in CLI
 			conf.Method = parseOpts.HTTP.Method
 		}
 	}
 
 	if parseOpts.HTTP.Data != "" {
+		// Only set if defined on command line, because we might be reparsing the CLI after
+		// populating it through raw request in the first iteration
 		conf.Data = parseOpts.HTTP.Data
 	}
 
-	// Divers
+	// Common stuff
 	conf.IgnoreWordlistComments = parseOpts.Input.IgnoreWordlistComments
 	conf.DirSearchCompat = parseOpts.Input.DirSearchCompat
 	conf.Colors = parseOpts.General.Colors
 	conf.InputNum = parseOpts.Input.InputNum
+
 	conf.InputShell = parseOpts.Input.InputShell
 	conf.OutputFile = parseOpts.Output.OutputFile
 	conf.OutputDirectory = parseOpts.Output.OutputDirectory
@@ -377,7 +540,7 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 	conf.Json = parseOpts.General.Json
 	conf.Http2 = parseOpts.HTTP.Http2
 
-	// Check fmode et mmode
+	// Check that fmode and mmode have sane values
 	valid_opmodes := []string{"and", "or"}
 	fmode_found := false
 	mmode_found := false
@@ -401,32 +564,32 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 	conf.MatcherMode = parseOpts.Matcher.Mode
 
 	if conf.AutoCalibrationPerHost {
+		// AutoCalibrationPerHost implies AutoCalibration
 		conf.AutoCalibration = true
 	}
 
-	// Gérer data + GET
+	// Handle copy as curl situation where POST method is implied by --data flag. If method is set to anything but GET, NOOP
 	if len(conf.Data) > 0 &&
 		conf.Method == "GET" &&
+		//don't modify the method automatically if a request file is being used as input
 		len(parseOpts.Input.Request) == 0 {
+
 		conf.Method = "POST"
 	}
 
 	conf.CommandLine = strings.Join(os.Args, " ")
 
-	// Filtrage final des inputProviders si le template ou le keyword n'est pas trouvé
 	newInputProviders := []InputProviderConfig{}
 	for _, provider := range conf.InputProviders {
 		if provider.Template != "" {
-			// templatePresent(...) doit exister dans config.go (même package)
-			if !templatePresent(provider.Template, conf) {
+			if !templatePresent(provider.Template, &conf) {
 				errmsg := fmt.Sprintf("Template %s defined, but not found in pairs in headers, method, URL or POST data.", provider.Template)
 				errs.Add(fmt.Errorf(errmsg))
 			} else {
 				newInputProviders = append(newInputProviders, provider)
 			}
 		} else {
-			// keywordPresent(...) doit exister dans config.go (même package)
-			if !keywordPresent(provider.Keyword, conf) {
+			if !keywordPresent(provider.Keyword, &conf) {
 				errmsg := fmt.Sprintf("Keyword %s defined, but not found in headers, method, URL or POST data.", provider.Keyword)
 				_, _ = fmt.Fprintf(os.Stderr, "%s\n", fmt.Errorf(errmsg))
 			} else {
@@ -436,14 +599,14 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 	}
 	conf.InputProviders = newInputProviders
 
-	// sniper + FUZZ
+	// If sniper mode, ensure there is no FUZZ keyword
 	if conf.InputMode == "sniper" {
-		if keywordPresent("FUZZ", conf) {
+		if keywordPresent("FUZZ", &conf) {
 			errs.Add(fmt.Errorf("FUZZ keyword defined, but we are using sniper mode."))
 		}
 	}
 
-	// Recursion + URL
+	// Do checks for recursion mode
 	if parseOpts.HTTP.Recursion {
 		if !strings.HasSuffix(conf.Url, "FUZZ") {
 			errmsg := "When using -recursion the URL (-u) must end with FUZZ keyword."
@@ -451,17 +614,13 @@ func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel con
 		}
 	}
 
-	// -json et -v sont mutuellement exclusifs
+	// Make verbose mutually exclusive with json
 	if parseOpts.General.Verbose && parseOpts.General.Json {
 		errs.Add(fmt.Errorf("Cannot have -json and -v"))
 	}
-
-	// On renvoie le conf final et la MultiError potentielle
-	return conf, errs.ErrorOrNil()
+	return &conf, errs.ErrorOrNil()
 }
 
-// parseRawRequest : lit une requête brute depuis parseOpts.Input.Request 
-// et remplit conf (URL, Headers, Data, etc.)
 func parseRawRequest(parseOpts *ConfigOptions, conf *Config) error {
 	conf.RequestFile = parseOpts.Input.Request
 	conf.RequestProto = parseOpts.Input.RequestProto
@@ -497,14 +656,15 @@ func parseRawRequest(parseOpts *ConfigOptions, conf *Config) error {
 			continue
 		}
 
-		// On ignore content-length
 		if strings.EqualFold(p[0], "content-length") {
 			continue
 		}
+
 		conf.Headers[strings.TrimSpace(p[0])] = strings.TrimSpace(p[1])
 	}
 
-	// Gérer le cas où la 2e partie (parts[1]) commence par http...
+	// Handle case with the full http url in path. In that case,
+	// ignore any host header that we encounter and use the path as request URL
 	if strings.HasPrefix(parts[1], "http") {
 		parsed, err := url.Parse(parts[1])
 		if err != nil {
@@ -513,15 +673,19 @@ func parseRawRequest(parseOpts *ConfigOptions, conf *Config) error {
 		conf.Url = parts[1]
 		conf.Headers["Host"] = parsed.Host
 	} else {
+		// Build the request URL from the request
 		conf.Url = parseOpts.Input.RequestProto + "://" + conf.Headers["Host"] + parts[1]
 	}
 
+	// Set the request body
 	b, err := io.ReadAll(r)
 	if err != nil {
 		return fmt.Errorf("could not read request body: %s", err)
 	}
 	conf.Data = string(b)
 
+	// Remove newline (typically added by the editor) at the end of the file
+	//nolint:gosimple // we specifically want to remove just a single newline, not all of them
 	if strings.HasSuffix(conf.Data, "\r\n") {
 		conf.Data = conf.Data[:len(conf.Data)-2]
 	} else if strings.HasSuffix(conf.Data, "\n") {
@@ -530,7 +694,68 @@ func parseRawRequest(parseOpts *ConfigOptions, conf *Config) error {
 	return nil
 }
 
-// ReadConfig / ReadDefaultConfig : inchangés si tu les utilises pareil.
+func keywordPresent(keyword string, conf *Config) bool {
+	//Search for keyword from HTTP method, URL and POST data too
+	if strings.Contains(conf.Method, keyword) {
+		return true
+	}
+	if strings.Contains(conf.Url, keyword) {
+		return true
+	}
+	if strings.Contains(conf.Data, keyword) {
+		return true
+	}
+	for k, v := range conf.Headers {
+		if strings.Contains(k, keyword) {
+			return true
+		}
+		if strings.Contains(v, keyword) {
+			return true
+		}
+	}
+	return false
+}
+
+func templatePresent(template string, conf *Config) bool {
+	// Search for input location identifiers, these must exist in pairs
+	sane := false
+
+	if c := strings.Count(conf.Method, template); c > 0 {
+		if c%2 != 0 {
+			return false
+		}
+		sane = true
+	}
+	if c := strings.Count(conf.Url, template); c > 0 {
+		if c%2 != 0 {
+			return false
+		}
+		sane = true
+	}
+	if c := strings.Count(conf.Data, template); c > 0 {
+		if c%2 != 0 {
+			return false
+		}
+		sane = true
+	}
+	for k, v := range conf.Headers {
+		if c := strings.Count(k, template); c > 0 {
+			if c%2 != 0 {
+				return false
+			}
+			sane = true
+		}
+		if c := strings.Count(v, template); c > 0 {
+			if c%2 != 0 {
+				return false
+			}
+			sane = true
+		}
+	}
+
+	return sane
+}
+
 func ReadConfig(configFile string) (*ConfigOptions, error) {
 	conf := NewConfigOptions()
 	configData, err := os.ReadFile(configFile)
@@ -541,6 +766,7 @@ func ReadConfig(configFile string) (*ConfigOptions, error) {
 }
 
 func ReadDefaultConfig() (*ConfigOptions, error) {
+	// Try to create configuration directory, ignore the potential error
 	_ = CheckOrCreateConfigDir()
 	conffile := filepath.Join(CONFIGDIR, "ffufrc")
 	if !FileExists(conffile) {
