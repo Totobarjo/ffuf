@@ -128,7 +128,7 @@ func NewConfig(opts *ConfigOptions, ctx context.Context, cancel context.CancelFu
 	conf.Verbose = false
 	conf.Wordlists = []string{}
 	conf.Http2 = false
-	return conf
+	return &conf, nil
 }
 
 func (c *Config) SetContext(ctx context.Context, cancel context.CancelFunc) {
