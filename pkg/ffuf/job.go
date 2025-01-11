@@ -508,25 +508,20 @@ func (j *Job) handleScraperResult(resp *Response, sres ScraperResult) {
 	}
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// handleGreedyRecursionJob adds a recursion job to the queue if the maximum depth has not been reached
 func (j *Job) handleGreedyRecursionJob(resp Response) {
-	// Vérifiez si le code HTTP est dans la liste des exclus
-	isExcluded := func(code int, excludeList []int) bool {
-		for _, excludedCode := range excludeList {
-			if code == excludedCode {
-				return true
-			}
+	// Check if the status code should be excluded
+	shouldExclude := false
+	for _, excludeCode := range j.Config.ExcludeStatusCodes {
+		if resp.StatusCode == excludeCode {
+			shouldExclude = true
+			break
 		}
-		return false
 	}
 
-	if isExcluded(int(resp.StatusCode), j.Config.ExcludeStatusCodes) {
-		j.Output.Warning(fmt.Sprintf("Excluded status code %d encountered. Ignoring: %s", resp.StatusCode, resp.Request.Url))
-		return
-	}
-
-	// Continue normalement si le code n'est pas exclu
-	if ((j.Config.RecursionDepth == 0 || j.currentDepth < j.Config.RecursionDepth) && !fileExtensions.MatchString(resp.Request.Url)) {
+	// Handle greedy recursion strategy. Match has been determined before calling handleRecursionJob
+	if ((j.Config.RecursionDepth == 0 || j.currentDepth < j.Config.RecursionDepth) && 
+		!fileExtensions.MatchString(resp.Request.Url)) && !shouldExclude {
 		recUrl := resp.Request.Url + "/" + "FUZZ"
 		newJob := QueueJob{Url: recUrl, depth: j.currentDepth + 1, req: RecursionRequest(j.Config, recUrl)}
 		j.queuejobs = append(j.queuejobs, newJob)
@@ -535,12 +530,6 @@ func (j *Job) handleGreedyRecursionJob(resp Response) {
 		j.Output.Warning(fmt.Sprintf("Maximum recursion depth reached. Ignoring: %s", resp.Request.Url))
 	}
 }
-
-
-
-
-
-
 
 // handleDefaultRecursionJob adds a new recursion job to the job queue if a new directory is found and maximum depth has
 // not been reached
