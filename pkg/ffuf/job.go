@@ -529,6 +529,7 @@ func (j *Job) handleGreedyRecursionJob(resp Response) {
         j.Output.Warning(fmt.Sprintf("Maximum recursion depth reached or status code excluded (%d). Ignoring: %s", resp.StatusCode, resp.Request.Url))
     }
 }
+fmt.Printf("Checking status code %d against excluded codes: %v\n", resp.StatusCode, j.Config.ExcludeStatusCodes)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
