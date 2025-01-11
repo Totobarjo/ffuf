@@ -98,16 +98,8 @@ func Usage() {
 		Hidden:        false,
 		ExpectedFlags: []string{"debug-log", "o", "of", "od", "or"},
 	}	
-	u_exclude := UsageSection{
-		Name:        "EXCLUDE OPTIONS",
-		Description: "Options for excluding specific status codes or response conditions.",
-		Flags: make([]UsageFlag, 0),
-		Hidden: false,
-		ExpectedFlags: []string{"ecr"},
-	}
 
-	sections := []UsageSection{u_http, u_general, u_compat, u_matcher, u_filter, u_input, u_output, u_exclude}
-
+	sections := []UsageSection{u_http, u_general, u_compat, u_matcher, u_filter, u_input, u_output}
 
 	// Populate the flag sections
 	max_length := 0
