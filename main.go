@@ -144,21 +144,6 @@ func ParseFlags(opts *ffuf.ConfigOptions) *ffuf.ConfigOptions {
 	flag.Usage = Usage
 	flag.Parse()
 
-	opts.General.AutoCalibrationStrings = autocalibrationstrings
-	if len(autocalibrationstrategies) > 0 {
-		opts.General.AutoCalibrationStrategies = []string{}
-		for _, strategy := range autocalibrationstrategies {
-			opts.General.AutoCalibrationStrategies = append(opts.General.AutoCalibrationStrategies, strings.Split(strategy, ",")...)
-		}
-	}
-	opts.HTTP.Cookies = cookies
-	opts.HTTP.Headers = headers
-	opts.Input.Inputcommands = inputcommands
-	opts.Input.Wordlists = wordlists
-	opts.Input.Encoders = encoders
-	return opts
-}
-
 	// Après la déclaration du flag et son parsing
 	if excludeStatusCodes != "" {
 	    codes := strings.Split(excludeStatusCodes, ",")
@@ -178,6 +163,22 @@ func ParseFlags(opts *ffuf.ConfigOptions) *ffuf.ConfigOptions {
 	        }
 	    }
 	}
+	
+	opts.General.AutoCalibrationStrings = autocalibrationstrings
+	if len(autocalibrationstrategies) > 0 {
+		opts.General.AutoCalibrationStrategies = []string{}
+		for _, strategy := range autocalibrationstrategies {
+			opts.General.AutoCalibrationStrategies = append(opts.General.AutoCalibrationStrategies, strings.Split(strategy, ",")...)
+		}
+	}
+	opts.HTTP.Cookies = cookies
+	opts.HTTP.Headers = headers
+	opts.Input.Inputcommands = inputcommands
+	opts.Input.Wordlists = wordlists
+	opts.Input.Encoders = encoders
+	return opts
+}
+
 
 fmt.Printf("Codes d'exclusion configurés: %v\n", conf.ExcludeStatusCodes)
 
