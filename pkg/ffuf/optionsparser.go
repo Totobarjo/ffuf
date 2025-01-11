@@ -115,7 +115,7 @@ type MatcherOptions struct {
 	Words  string `json:"words"`
 }
 
-// NewConfigOptions returns a newly created ConfigOptions struct with default values
+// Options returns a newly created ConfigOptions struct with default values
 func NewConfigOptions() *ConfigOptions {
 	c := &ConfigOptions{}
 	c.Filter.Mode = "or"
@@ -187,7 +187,11 @@ func NewConfigOptions() *ConfigOptions {
 func ConfigFromOptions(parseOpts *ConfigOptions, ctx context.Context, cancel context.CancelFunc) (*Config, error) {
 	//TODO: refactor in a proper flag library that can handle things like required flags
 	errs := NewMultierror()
-	conf := NewConfig(ctx, cancel)
+	conf, err := NewConfig(parseOpts, ctx, cancel)
+	if err != nil {
+	    // gérer l’erreur au besoin
+	    return nil, err
+	}
 
 	var err error
 	var err2 error
