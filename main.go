@@ -9,6 +9,8 @@ import (
 	"os"
 	"strings"
 	"time"
+	"strconv"
+	"context" // si utilisé pour `Config`
 
 	"github.com/ffuf/ffuf/v2/pkg/ffuf"
 	"github.com/ffuf/ffuf/v2/pkg/filter"
@@ -336,7 +338,10 @@ func SetupFilters(parseOpts *ffuf.ConfigOptions, conf *ffuf.Config) error {
 	}
 
 	// Gestion des filtres avec l'option -ecr (Exclude Codes for Recursion)
-	// Après le parsing des flags, convertissez excludeCodes en un tableau d'entiers
+	// Analysez les arguments
+	flag.Parse()
+
+	// Convertissez excludeCodes en une liste d'entiers et ajoutez-les à opts.ExcludeStatusCodes
 	if excludeCodes != "" {
 		codes := strings.Split(excludeCodes, ",")
 		for _, code := range codes {
@@ -349,6 +354,10 @@ func SetupFilters(parseOpts *ffuf.ConfigOptions, conf *ffuf.Config) error {
 			}
 		}
 	}
+
+	return opts
+	}
+
 	
 	if parseOpts.Filter.Status != "" {
 		if err := conf.MatcherManager.AddFilter("status", parseOpts.Filter.Status, false); err != nil {
