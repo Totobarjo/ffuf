@@ -525,7 +525,7 @@ func (j *Job) handleGreedyRecursionJob(resp Response) {
 
     // Puis la condition avec ta fonction d'exclusion
     if ((j.Config.RecursionDepth == 0 || j.currentDepth < j.Config.RecursionDepth) && !fileExtensions.MatchString(resp.Request.Url)) &&
-        !isCodeExcluded(int(resp.StatusCode), j.Config.ExcludeResponseCodes) {
+        !isCodeExcluded(int(resp.StatusCode), j.Config.HTTP.ExcludeResponseCodes) {
 
         recUrl := resp.Request.Url + "/" + "FUZZ"
         newJob := QueueJob{Url: recUrl, depth: j.currentDepth + 1, req: RecursionRequest(j.Config, recUrl)}
