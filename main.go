@@ -162,6 +162,7 @@ func ParseFlags(opts *ffuf.ConfigOptions) *ffuf.ConfigOptions {
 	            errs.Add(err)
 	        }
 	    }
+		fmt.Printf("Codes d'exclusion configurés: %v\n", conf.ExcludeStatusCodes)
 	}
 	
 	opts.General.AutoCalibrationStrings = autocalibrationstrings
@@ -180,7 +181,7 @@ func ParseFlags(opts *ffuf.ConfigOptions) *ffuf.ConfigOptions {
 }
 
 
-fmt.Printf("Codes d'exclusion configurés: %v\n", conf.ExcludeStatusCodes)
+
 
 func main() {
 
