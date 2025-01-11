@@ -9,7 +9,6 @@ import (
 	"os"
 	"strings"
 	"time"
-	"strconv"
 
 	"github.com/ffuf/ffuf/v2/pkg/ffuf"
 	"github.com/ffuf/ffuf/v2/pkg/filter"
@@ -54,7 +53,7 @@ func ParseFlags(opts *ffuf.ConfigOptions) *ffuf.ConfigOptions {
 
 	var cookies, autocalibrationstrings, autocalibrationstrategies, headers, inputcommands multiStringFlag
 	var wordlists, encoders wordlistFlag
-	var excludeCodesString string
+	var excludeStatusCodes string
 
 	cookies = opts.HTTP.Cookies
 	autocalibrationstrings = opts.General.AutoCalibrationStrings
@@ -63,7 +62,7 @@ func ParseFlags(opts *ffuf.ConfigOptions) *ffuf.ConfigOptions {
 	wordlists = opts.Input.Wordlists
 	encoders = opts.Input.Encoders
 
-	flag.StringVar(&excludeCodesString, "ecr", "", "Exclude specific HTTP status codes response from recursion (comma-separated, ex : 403,404)")
+	flag.StringVar(&excludeStatusCodes, "ecr", "", "Exclude specific HTTP status codes response from recursion (comma-separated, ex : 403,404)")
 	flag.BoolVar(&ignored, "compressed", true, "Dummy flag for copy as curl functionality (ignored)")
 	flag.BoolVar(&ignored, "i", true, "Dummy flag for copy as curl functionality (ignored)")
 	flag.BoolVar(&ignored, "k", false, "Dummy flag for backwards compatibility")
@@ -145,15 +144,14 @@ func ParseFlags(opts *ffuf.ConfigOptions) *ffuf.ConfigOptions {
 	flag.Usage = Usage
 	flag.Parse()
 
-	
+	config := ffuf.Config{}
+
 	// Ensuite, tu parses la valeur de excludeCodesString
 	codes, err := parseExcludedCodes(excludeCodesString)
 	if err != nil {
 	    log.Fatalf("Error parsing -ecr flag: %v", err)
 	}
-	
-	opts.HTTP.ExcludeResponseCodes = codes
-	
+	config.ExcludeResponseCodes = codes
 
 	opts.General.AutoCalibrationStrings = autocalibrationstrings
 	if len(autocalibrationstrategies) > 0 {
@@ -170,32 +168,8 @@ func ParseFlags(opts *ffuf.ConfigOptions) *ffuf.ConfigOptions {
 	return opts
 }
 
-
-// Toujours dans main.go, en-dehors de main()
-func parseExcludedCodes(excludedCodesStr string) ([]int, error) {
-    var codes []int
-    if excludedCodesStr == "" {
-        return codes, nil
-    }
-
-    splitted := strings.Split(excludedCodesStr, ",")
-    for _, s := range splitted {
-        s = strings.TrimSpace(s)
-        if s == "" {
-            continue
-        }
-        code, err := strconv.Atoi(s)
-        if err != nil {
-            return nil, fmt.Errorf("invalid HTTP code in -ecr: %v", err)
-        }
-        codes = append(codes, code)
-    }
-    return codes, nil
-}
-
-
 func main() {
-	
+
 	var err, optserr error
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -371,8 +345,8 @@ func SetupFilters(parseOpts *ffuf.ConfigOptions, conf *ffuf.Config) error {
 	}
 
 	// Gestion des filtres avec l'option -ecr (Exclude Codes for Recursion)
-	if len(parse) > 0 {
-		for _, code := range parse {
+	if len(parseOpts.HTTP.ExcludeStatusCodes) > 0 {
+		for _, code := range parseOpts.HTTP.ExcludeStatusCodes {
 			excludeFilter := fmt.Sprintf("%d", code)
 			if err := conf.MatcherManager.AddFilter("status", excludeFilter, true); err != nil {
 				errs.Add(err)
