@@ -510,8 +510,17 @@ func (j *Job) handleScraperResult(resp *Response, sres ScraperResult) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // handleGreedyRecursionJob adds a recursion job to the queue if the maximum depth has not been reached
+func isCodeExcluded(code int, excludeList []int) bool {
+    for _, c := range excludeList {
+        if c == code {
+            return true
+        }
+    }
+    return false
+}
+
 func (j *Job) handleGreedyRecursionJob(resp Response) {
-	if ((j.Config.RecursionDepth == 0 || j.currentDepth < j.Config.RecursionDepth) && !fileExtensions.MatchString(resp.Request.Url)) && resp.StatusCode != 400 {
+	if ((j.Config.RecursionDepth == 0 || j.currentDepth < j.Config.RecursionDepth) && !fileExtensions.MatchString(resp.Request.Url)) && !isCodeExcluded(resp.StatusCode, j.Config.ExcludeResponseCodes) {
 		recUrl := resp.Request.Url + "/" + "FUZZ"
 		newJob := QueueJob{Url: recUrl, depth: j.currentDepth + 1, req: RecursionRequest(j.Config, recUrl)}
 		j.queuejobs = append(j.queuejobs, newJob)
