@@ -511,25 +511,24 @@ func (j *Job) handleScraperResult(resp *Response, sres ScraperResult) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // handleGreedyRecursionJob adds a recursion job to the queue if the maximum depth has not been reached
 func (j *Job) handleGreedyRecursionJob(resp Response) {
-	// Check if the status code should be excluded
-	shouldExclude := false
-	for _, excludeCode := range j.Config.ExcludeStatusCodes {
-		if resp.StatusCode == int64(excludeCode) {
-			shouldExclude = true
-			break
-		}
-	}
+    // Handle greedy recursion strategy. Match has been determined before calling handleRecursionJob
+    shouldExclude := false
+    for _, code := range j.Config.ExcludeStatusCodes {
+        if resp.StatusCode == int64(code) {
+            shouldExclude = true
+            break
+        }
+    }
 
-	// Handle greedy recursion strategy. Match has been determined before calling handleRecursionJob
-	if ((j.Config.RecursionDepth == 0 || j.currentDepth < j.Config.RecursionDepth) && 
-		!fileExtensions.MatchString(resp.Request.Url)) && !shouldExclude {
-		recUrl := resp.Request.Url + "/" + "FUZZ"
-		newJob := QueueJob{Url: recUrl, depth: j.currentDepth + 1, req: RecursionRequest(j.Config, recUrl)}
-		j.queuejobs = append(j.queuejobs, newJob)
-		j.Output.Info(fmt.Sprintf("Adding a new job to the queue: %s", recUrl))
-	} else {
-		j.Output.Warning(fmt.Sprintf("Maximum recursion depth reached. Ignoring: %s", resp.Request.Url))
-	}
+    if ((j.Config.RecursionDepth == 0 || j.currentDepth < j.Config.RecursionDepth) && 
+        !fileExtensions.MatchString(resp.Request.Url)) && !shouldExclude {
+        recUrl := resp.Request.Url + "/" + "FUZZ"
+        newJob := QueueJob{Url: recUrl, depth: j.currentDepth + 1, req: RecursionRequest(j.Config, recUrl)}
+        j.queuejobs = append(j.queuejobs, newJob)
+        j.Output.Info(fmt.Sprintf("Adding a new job to the queue: %s", recUrl))
+    } else {
+        j.Output.Warning(fmt.Sprintf("Maximum recursion depth reached. Ignoring: %s", resp.Request.Url))
+    }
 }
 
 // handleDefaultRecursionJob adds a new recursion job to the job queue if a new directory is found and maximum depth has
