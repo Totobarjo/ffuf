@@ -78,7 +78,7 @@ type InputProviderConfig struct {
 	Template string `json:"template"` // the templating string used for sniper mode (usually "§")
 }
 
-func NewConfig(opts *ConfigOptions, ctx context.Context, cancel context.CancelFunc) Config {
+func NewConfig(opts *ConfigOptions, ctx context.Context, cancel context.CancelFunc) (*Config, error) {
 	var conf Config
 	conf.ExcludeResponseCodes = opts.HTTP.ExcludeResponseCodes
 	conf.AutoCalibrationKeyword = "FUZZ"
