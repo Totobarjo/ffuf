@@ -166,6 +166,7 @@ func ParseFlags(opts *ffuf.ConfigOptions) *ffuf.ConfigOptions {
 func main() {
 
 	var err, optserr error
+	var excludeStatusCodes string
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	// prepare the default config options from default config file
