@@ -153,6 +153,30 @@ func ParseFlags(opts *ffuf.ConfigOptions) *ffuf.ConfigOptions {
 	}
 	config.ExcludeResponseCodes = codes
 
+
+	func parseExcludedCodes(excludedCodesStr string) ([]int, error) {
+	    var codes []int
+	    if excludedCodesStr == "" {
+	        return codes, nil
+	    }
+	
+	    splitted := strings.Split(excludedCodesStr, ",")
+	    for _, s := range splitted {
+	        s = strings.TrimSpace(s)
+	        if s == "" {
+	            continue
+	        }
+	        code, err := strconv.Atoi(s)
+	        if err != nil {
+	            return nil, fmt.Errorf("invalid HTTP code in -ecr: %v", err)
+	        }
+	        codes = append(codes, code)
+	    }
+	    return codes, nil
+	}
+
+	
+
 	opts.General.AutoCalibrationStrings = autocalibrationstrings
 	if len(autocalibrationstrategies) > 0 {
 		opts.General.AutoCalibrationStrategies = []string{}
