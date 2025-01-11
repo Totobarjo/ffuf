@@ -157,7 +157,7 @@ func ParseFlags(opts *ffuf.ConfigOptions) *ffuf.ConfigOptions {
 	opts.Input.Inputcommands = inputcommands
 	opts.Input.Wordlists = wordlists
 	opts.Input.Encoders = encoders
-	return opts
+	return opts, excludeStatusCodes
 }
 
 
@@ -166,7 +166,6 @@ func ParseFlags(opts *ffuf.ConfigOptions) *ffuf.ConfigOptions {
 func main() {
 
 	var err, optserr error
-	var excludeStatusCodes string
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	// prepare the default config options from default config file
