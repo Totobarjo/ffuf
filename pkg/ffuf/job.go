@@ -513,7 +513,7 @@ func (j *Job) handleGreedyRecursionJob(resp Response) {
 	// Check if the status code should be excluded
 	shouldExclude := false
 	for _, excludeCode := range j.Config.ExcludeStatusCodes {
-		if resp.StatusCode == excludeCode {
+		if resp.StatusCode == int64(excludeCode) {
 			shouldExclude = true
 			break
 		}
