@@ -520,7 +520,7 @@ func isCodeExcluded(code int, excludeList []int) bool {
 }
 
 func (j *Job) handleGreedyRecursionJob(resp Response) {
-	if ((j.Config.RecursionDepth == 0 || j.currentDepth < j.Config.RecursionDepth) && !fileExtensions.MatchString(resp.Request.Url)) && !isCodeExcluded(resp.StatusCode, j.Config.ExcludeResponseCodes) {
+	if ((j.Config.RecursionDepth == 0 || j.currentDepth < j.Config.RecursionDepth) && !fileExtensions.MatchString(resp.Request.Url)) && !isCodeExcluded(int(resp.StatusCode), j.Config.ExcludeResponseCodes) {
 		recUrl := resp.Request.Url + "/" + "FUZZ"
 		newJob := QueueJob{Url: recUrl, depth: j.currentDepth + 1, req: RecursionRequest(j.Config, recUrl)}
 		j.queuejobs = append(j.queuejobs, newJob)
