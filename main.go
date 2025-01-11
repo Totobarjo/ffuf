@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"strconv"
 
 	"github.com/ffuf/ffuf/v2/pkg/ffuf"
 	"github.com/ffuf/ffuf/v2/pkg/filter"
@@ -53,7 +54,8 @@ func ParseFlags(opts *ffuf.ConfigOptions) *ffuf.ConfigOptions {
 
 	var cookies, autocalibrationstrings, autocalibrationstrategies, headers, inputcommands multiStringFlag
 	var wordlists, encoders wordlistFlag
-	var excludeStatusCodes string
+	var ExcludeResponseCodes string
+	var excludeCodesString string
 
 	cookies = opts.HTTP.Cookies
 	autocalibrationstrings = opts.General.AutoCalibrationStrings
@@ -62,7 +64,7 @@ func ParseFlags(opts *ffuf.ConfigOptions) *ffuf.ConfigOptions {
 	wordlists = opts.Input.Wordlists
 	encoders = opts.Input.Encoders
 
-	flag.StringVar(&excludeStatusCodes, "ecr", "", "Exclude specific HTTP status codes response from recursion (comma-separated, ex : 403,404)")
+	flag.StringVar(&ExcludeResponseCodes, "ecr", "", "Exclude specific HTTP status codes response from recursion (comma-separated, ex : 403,404)")
 	flag.BoolVar(&ignored, "compressed", true, "Dummy flag for copy as curl functionality (ignored)")
 	flag.BoolVar(&ignored, "i", true, "Dummy flag for copy as curl functionality (ignored)")
 	flag.BoolVar(&ignored, "k", false, "Dummy flag for backwards compatibility")
@@ -368,8 +370,8 @@ func SetupFilters(parseOpts *ffuf.ConfigOptions, conf *ffuf.Config) error {
 	}
 
 	// Gestion des filtres avec l'option -ecr (Exclude Codes for Recursion)
-	if len(parseOpts.HTTP.ExcludeStatusCodes) > 0 {
-		for _, code := range parseOpts.HTTP.ExcludeStatusCodes {
+	if len(parseOpts.HTTP.ExcludeResponseCodes) > 0 {
+		for _, code := range parseOpts.HTTP.ExcludeResponseCodes {
 			excludeFilter := fmt.Sprintf("%d", code)
 			if err := conf.MatcherManager.AddFilter("status", excludeFilter, true); err != nil {
 				errs.Add(err)
