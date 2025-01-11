@@ -62,7 +62,7 @@ func ParseFlags(opts *ffuf.ConfigOptions) *ffuf.ConfigOptions {
 	wordlists = opts.Input.Wordlists
 	encoders = opts.Input.Encoders
 
-	flag.StringVar(&excludeStatusCodes, "ecr", "", "Exclude specific HTTP status codes from recursion (comma-separated, ex : 403,404)")
+	flag.StringVar(&excludeStatusCodes, "ecr", "", "Exclude specific HTTP status codes response from recursion (comma-separated, ex : 403,404)")
 	flag.BoolVar(&ignored, "compressed", true, "Dummy flag for copy as curl functionality (ignored)")
 	flag.BoolVar(&ignored, "i", true, "Dummy flag for copy as curl functionality (ignored)")
 	flag.BoolVar(&ignored, "k", false, "Dummy flag for backwards compatibility")
@@ -144,6 +144,15 @@ func ParseFlags(opts *ffuf.ConfigOptions) *ffuf.ConfigOptions {
 	flag.Usage = Usage
 	flag.Parse()
 
+	config := ffuf.Config{}
+
+	// Ensuite, tu parses la valeur de excludeCodesString
+	codes, err := parseExcludedCodes(excludeCodesString)
+	if err != nil {
+	    log.Fatalf("Error parsing -ecr flag: %v", err)
+	}
+	config.ExcludeResponseCodes = codes
+
 	opts.General.AutoCalibrationStrings = autocalibrationstrings
 	if len(autocalibrationstrategies) > 0 {
 		opts.General.AutoCalibrationStrategies = []string{}
@@ -158,9 +167,6 @@ func ParseFlags(opts *ffuf.ConfigOptions) *ffuf.ConfigOptions {
 	opts.Input.Encoders = encoders
 	return opts
 }
-
-
-
 
 func main() {
 
@@ -339,15 +345,14 @@ func SetupFilters(parseOpts *ffuf.ConfigOptions, conf *ffuf.Config) error {
 	}
 
 	// Gestion des filtres avec l'option -ecr (Exclude Codes for Recursion)
-	    if len(parseOpts.HTTP.ExcludeStatusCodes) > 0 {
-	        for _, code := range parseOpts.HTTP.ExcludeStatusCodes {
-	            excludeFilter := fmt.Sprintf("%d", code)
-	            if err := conf.MatcherManager.AddFilter("status", excludeFilter, true); err != nil {
-	                errs.Add(err)
-	            }
-	            conf.ExcludeStatusCodes = append(conf.ExcludeStatusCodes, code)
-	        }
-	    }
+	if len(parseOpts.HTTP.ExcludeStatusCodes) > 0 {
+		for _, code := range parseOpts.HTTP.ExcludeStatusCodes {
+			excludeFilter := fmt.Sprintf("%d", code)
+			if err := conf.MatcherManager.AddFilter("status", excludeFilter, true); err != nil {
+				errs.Add(err)
+			}
+		}
+	}
 	
 	if parseOpts.Filter.Status != "" {
 		if err := conf.MatcherManager.AddFilter("status", parseOpts.Filter.Status, false); err != nil {
