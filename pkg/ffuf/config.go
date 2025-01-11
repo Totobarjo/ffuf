@@ -67,7 +67,7 @@ type Config struct {
 	Http2                     bool                  `json:"http2"`
 	ClientCert                string                `json:"client-cert"`
 	ClientKey                 string                `json:"client-key"`
-	ExcludeResponseCodes      []int                 `json:"exclude_response_codes"`
+	excludeStatusCodes        []int                 `json:"exclude_response_codes"`
 }
 
 type InputProviderConfig struct {
@@ -80,7 +80,7 @@ type InputProviderConfig struct {
 
 func NewConfig(ctx context.Context, cancel context.CancelFunc) Config {
 	var conf Config
-	conf.ExcludeResponseCodes = make([]int, 0) // Initialisation du champ
+	conf.excludeStatusCodes = make([]int, 0) // Initialisation du champ
 	conf.AutoCalibrationKeyword = "FUZZ"
 	conf.AutoCalibrationStrategies = []string{"basic"}
 	conf.AutoCalibrationStrings = make([]string, 0)
