@@ -80,7 +80,6 @@ type InputProviderConfig struct {
 
 func NewConfig(opts *ConfigOptions, ctx context.Context, cancel context.CancelFunc) (*Config, error) {
 	var conf Config
-	conf.ExcludeResponseCodes = opts.HTTP.ExcludeResponseCodes
 	conf.AutoCalibrationKeyword = "FUZZ"
 	conf.AutoCalibrationStrategies = []string{"basic"}
 	conf.AutoCalibrationStrings = make([]string, 0)
