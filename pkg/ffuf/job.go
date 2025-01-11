@@ -508,6 +508,7 @@ func (j *Job) handleScraperResult(resp *Response, sres ScraperResult) {
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // handleGreedyRecursionJob adds a recursion job to the queue if the maximum depth has not been reached
 func (j *Job) handleGreedyRecursionJob(resp Response) {
 	// Check if the status code should be excluded
