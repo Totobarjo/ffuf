@@ -159,6 +159,28 @@ func ParseFlags(opts *ffuf.ConfigOptions) *ffuf.ConfigOptions {
 	return opts
 }
 
+	// Après la déclaration du flag et son parsing
+	if excludeStatusCodes != "" {
+	    codes := strings.Split(excludeStatusCodes, ",")
+	    for _, code := range codes {
+	        parsedCode, err := strconv.Atoi(strings.TrimSpace(code))
+	        if err != nil {
+	            fmt.Printf("Error: Invalid status code in -ecr flag: '%s'\n", code)
+	            os.Exit(1)
+	        }
+	        // Ajouter à la config
+	        conf.ExcludeStatusCodes = append(conf.ExcludeStatusCodes, parsedCode)
+	        
+	        // Ajouter aussi aux filtres comme c'était fait avant
+	        excludeFilter := fmt.Sprintf("%d", parsedCode)
+	        if err := conf.MatcherManager.AddFilter("status", excludeFilter, true); err != nil {
+	            errs.Add(err)
+	        }
+	    }
+	}
+
+fmt.Printf("Codes d'exclusion configurés: %v\n", conf.ExcludeStatusCodes)
+
 func main() {
 
 	var err, optserr error
