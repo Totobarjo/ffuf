@@ -54,7 +54,6 @@ func ParseFlags(opts *ffuf.ConfigOptions) *ffuf.ConfigOptions {
 
 	var cookies, autocalibrationstrings, autocalibrationstrategies, headers, inputcommands multiStringFlag
 	var wordlists, encoders wordlistFlag
-	var ExcludeResponseCodes string
 	var excludeCodesString string
 
 	cookies = opts.HTTP.Cookies
