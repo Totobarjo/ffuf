@@ -50,7 +50,7 @@ type QueueJob struct {
 }
 // This is the xp used to match endpoins with file extensions,such as /robots.txt
 //var fileExtensions = regexp.MustCompile(`\.[a-zA-Z0-9]+$`)
-var fileExtensions = regexp.MustCompile(`\.[a-zA-Z0-9]+$|\?|\%2f`)
+var fileExtensions = regexp.MustCompile(`\.[a-zA-Z0-9]+$|\?|%2f|\#`)
 
 func NewJob(conf *Config) *Job {
 	var j Job
